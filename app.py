@@ -2,8 +2,45 @@ import streamlit as st
 import streamlit.components.v1 as components
 import os
 
-# Configuración de la página
-st.set_page_config(page_title="SGC Dashboard Pro", layout="wide", initial_sidebar_state="collapsed")
+# Configuración de la página ultra-limpia
+st.set_page_config(
+    page_title="SGC Dashboard Pro",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+
+# --- CSS FULLSCREEN (PARA ELIMINAR EL "STREAMLIT LOOK") ---
+st.markdown("""
+    <style>
+    /* Eliminar padding superior y laterales del contenedor principal */
+    .block-container {
+        padding-top: 0rem !important;
+        padding-bottom: 0rem !important;
+        padding-left: 0rem !important;
+        padding-right: 0rem !important;
+        max-width: 100% !important;
+    }
+    /* Ocultar header, footer y menú de Streamlit */
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    #MainMenu {visibility: hidden;}
+    .stAppDeployButton {display:none;}
+    
+    /* Forzar el iframe a no tener bordes ni márgenes */
+    iframe {
+        border: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block;
+    }
+    
+    /* Eliminar el espacio en blanco arriba (gap) */
+    .stApp {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 def load_dashboard():
     # Rutas de los archivos
@@ -12,38 +49,25 @@ def load_dashboard():
     css_path = os.path.join(base_path, "style.css")
     js_path = os.path.join(base_path, "script.js")
 
-    # Leer archivos
+    # Leer archivos con encoding utf-8
     with open(html_path, "r", encoding="utf-8") as f:
         html_content = f.read()
-    
     with open(css_path, "r", encoding="utf-8") as f:
         css_content = f.read()
-        
     with open(js_path, "r", encoding="utf-8") as f:
         js_content = f.read()
 
-    # Inyectar CSS y JS en el HTML para que sea autoportante en el iframe de Streamlit
-    # Insertar CSS antes de cerrar el head
+    # Inyecciones para que el sitio sea autónomo
     full_html = html_content.replace('</head>', f'<style>{css_content}</style></head>')
-    # Insertar JS al final del body
     full_html = full_html.replace('</body>', f'<script>{js_content}</script></body>')
-    # Limpiar referencias externas que ya inyectamos
+    
+    # Limpiar links rotos que ya inyectamos
     full_html = full_html.replace('<link rel="stylesheet" href="style.css">', '')
     full_html = full_html.replace('<script src="script.js"></script>', '')
 
     return full_html
 
-# Renderizar el dashboard a pantalla completa
+# Renderizar el dashboard
+# Usamos un height suficientemente grande para evitar doble scroll bar o ajustado a tu diseño
 html_data = load_dashboard()
-components.html(html_data, height=2000, scrolling=True)
-
-# Estilos para ocultar el menú de Streamlit y que parezca una web pura
-st.markdown("""
-    <style>
-    #MainMenu {visibility: hidden;}
-    header {visibility: hidden;}
-    footer {visibility: hidden;}
-    .stApp { margin-top: -80px; }
-    iframe { border-radius: 0px !important; }
-    </style>
-""", unsafe_allow_html=True)
+components.html(html_data, height=1000, scrolling=True)
